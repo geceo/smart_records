@@ -16,6 +16,7 @@ typedef struct mysql_uri {
 typedef struct mysql_backend_ctx_t {
     MYSQL *mysql_obj;
     mysql_uri_t *uri;
+    char *fmt;
 } mysql_backend_ctx_t;
 
 
