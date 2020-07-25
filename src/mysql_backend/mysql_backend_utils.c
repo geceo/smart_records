@@ -23,19 +23,9 @@ SOFTWARE.
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include "smart_records_internals.h"
-//#include <mysql.h>
-
-#define URI_SCHEME "mysql://user[:password]@host[:port]/db_name.table"
-
-typedef struct mysql_uri {
-    char *host;
-    char *user;
-    char *passwd;
-    char *db;
-    char *table;
-    unsigned int port;
-} mysql_uri_t;
+#include "../smart_records_internals.h"
+#include <mysql.h>
+#include "mysql_backend_internals.h"
 
 void mysql_free_uri(mysql_uri_t * uri)
 {
@@ -54,9 +44,7 @@ void mysql_free_uri(mysql_uri_t * uri)
     free(uri);
 }
 
-
-
-mysql_uri_t *mysql_parse_uri( /* MYSQL *mysql, */ const char *uri, char **error)
+mysql_uri_t *mysql_parse_uri(char **error, const char *uri)
 {
     int conv;
     mysql_uri_t *r=NULL;
@@ -134,23 +122,18 @@ failed:
     return NULL;
 }
 
-
 #ifdef _TEST
 char *tests[7][2] = {
     { "Every info provided",
      "mysql://leon:bruxelles@lafrite:1024/STOCK_PATATE.avril" },
-/*
     { "Every info provided except password",
      "mysql://leon@lafrite:1024/STOCK_PATATE.avril" },
-*/
     { "Every info provided but empty password",
      "mysql://leon:@lafrite:1024/STOCK_PATATE.avril" },
     { "Every info provided except port number",
      "mysql://leon:coin@lafrite/STOCK_PATATE.avril" },
-/*
     { "Bad URI #1", "mysql://lafrite/PATATE.avril" },
     { "Bad URI #1", "mysql://lafrite/" },
-*/
     { NULL, NULL },
 };
 

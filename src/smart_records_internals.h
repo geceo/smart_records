@@ -8,7 +8,7 @@
 
 typedef struct smart_records_ctx_t {
     void *CTX;
-    int (*set_format) (struct smart_records_ctx_t *ctx, char **error, char *fmp);
+    int (*set_format) (struct smart_records_ctx_t *ctx, char **error, const char *fmt);
     int (*write_record) (struct smart_records_ctx_t *ctx, char **error, va_list ap);
     int (*close_records_base) (struct smart_records_ctx_t *ctx);
 } smart_records_ctx_t ;   

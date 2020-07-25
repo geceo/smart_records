@@ -27,7 +27,7 @@ smart_records_ctx_t *smart_records_init(){
     return malloc(sizeof(smart_records_ctx_t));    
 }
     
-int smart_records_open_base(smart_records_ctx_t *ctx, char *uri, char **error)
+int smart_records_open_base(smart_records_ctx_t *ctx, char **error, const char *uri)
 {
     int len_uri;
 
@@ -38,11 +38,11 @@ int smart_records_open_base(smart_records_ctx_t *ctx, char *uri, char **error)
     len_uri = strlen(uri);
     if(!strncmp("mysql://", uri, len_uri < 8 ? len_uri : 8)) {
 #ifdef _HAS_MYSQL
-        ctx->CTX = malloc(sizeof(mysql_backend_ctx_t));
+        ctx->backend_ctx = NULL;
         ctx->write_record = mysql_backend_write_record;
         ctx->set_format = mysql_backend_set_format;
         ctx->close_records_base = mysql_backend_close_records_base;
-        if ( mysql_backend_init(ctx->CTX, error) < 0)
+        if ((ctx->backend_ctx = mysql_backend_init(error) == NULL)
             goto failed;
 #else
         set_error_and_fails("built without support for mysql:// URIs");
@@ -52,49 +52,36 @@ int smart_records_open_base(smart_records_ctx_t *ctx, char *uri, char **error)
 
     else if(!strncmp("sqlite://", uri, len_uri < 9 ? len_uri : 9)) {
 #ifdef _HAS_SQLITE
-        ctx->CTX = malloc(sizeof(sqlite_backend_ctx_t));
-        ctx->write_record = sqlite_backend_write_record(char *uri);
-        ctx->close_records_base = sqlite_backend_close_records_base(char *uri);
-        if ( sqlite_backend_init(ctx->CTX, error) < 0)
-            goto failed;
 #else
-        if(error) *error = strdup("built without support for sqlite:// URIs");
-        goto failed;
+        set_error_and_fails("built without support for sqlite:// URIs");
     }
 #endif
 
     else if(!strncmp("udp://", uri, len_uri < 8 ? len_uri : 8)) {
 #ifdef _HAS_UDP
-        ctx->CTX = malloc(sizeof(udp_backend_ctx_t));
-        ctx->write_record = udp_backend_write_record(char *uri);
-        ctx->close_records_base = udp_backend_close_records_base(char *uri);
-        if ( udp_backend_init(ctx->CTX, error) < 0)
-            goto failed;
 #else
-        if(error) *error = strdup("built without support for udp:// URIs");
-        goto failed;
+        set_error_and_fails("built without support for udp:// URIs");
     }
 #endif
 
     else if(!strncmp("csv://", uri, len_uri < 8 ? len_uri : 8)) {
 #ifdef _HAS_CSV
-        ctx->CTX = malloc(sizeof(csv_backend_ctx_t));
-        ctx->write_record = csv_backend_write_record(char *uri);
-        ctx->close_records_base = csv_backend_close_records_base(char *uri);
-        if ( csv_backend_init(ctx->CTX, error) < 0)
-            goto failed;
 #else
-        if(error) *error = strdup("built without suppor fort csv:// URIs");
-        goto failed;
+        set_error_and_fails("built without suppor fort csv:// URIs");
 #endif
     }
     else {
-        if(error) *error = strdup("Unknown scheme or bad URI.");
+        set_error_and_fails("Unknown scheme or bad URI.");
         goto failed;
     }
     return 0;
 failed:
     return -1;
+}
+
+int smart_records_set_format(smart_records_ctx_t *ctx, char **error, const char *fmt)
+{
+    return ctx->set_format(ctx, error, fmt);
 }
 
 int smart_records_close_base(smart_records_ctx_t *ctx)
