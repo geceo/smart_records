@@ -122,7 +122,7 @@ failed:
     return NULL;
 }
 
-#ifdef _TEST
+#ifdef _TEST_URI
 char *tests[7][2] = {
     { "Every info provided",
      "mysql://leon:bruxelles@lafrite:1024/STOCK_PATATE.avril" },

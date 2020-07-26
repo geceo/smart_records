@@ -6,7 +6,7 @@
 #include "smart_records_internals.h"
 
 #ifdef _HAS_MYSQL
-#include "mysql_backend.h"
+#include "mysql_backend/mysql_backend.h"
 #endif
 
 #ifdef _HAS_SQLITE
@@ -18,7 +18,7 @@
 #endif
 
 #ifdef _HAS_CSV
-#include "csv_backend.h"
+#include "csv_backend/csv_backend.h"
 #endif
 
 
@@ -42,11 +42,10 @@ int smart_records_open_base(smart_records_ctx_t *ctx, char **error, const char *
         ctx->write_record = mysql_backend_write_record;
         ctx->set_format = mysql_backend_set_format;
         ctx->close_records_base = mysql_backend_close_records_base;
-        if ((ctx->backend_ctx = mysql_backend_init(error) == NULL)
+        if (!(ctx->backend_ctx = mysql_backend_init(error)))
             goto failed;
 #else
         set_error_and_fails("built without support for mysql:// URIs");
-        goto failed;
 #endif
     }
 
@@ -66,6 +65,12 @@ int smart_records_open_base(smart_records_ctx_t *ctx, char **error, const char *
 
     else if(!strncmp("csv://", uri, len_uri < 8 ? len_uri : 8)) {
 #ifdef _HAS_CSV
+        ctx->backend_ctx = NULL;
+        ctx->write_record = csv_backend_write_record;
+        ctx->set_format = csv_backend_set_format;
+        ctx->close_records_base = csv_backend_close_records_base;
+        if (!(ctx->backend_ctx = csv_backend_init(error)))
+            goto failed;
 #else
         set_error_and_fails("built without suppor fort csv:// URIs");
 #endif
@@ -92,4 +97,9 @@ int smart_records_close_base(smart_records_ctx_t *ctx)
 int smart_records_write(smart_records_ctx_t *ctx, char **error, va_list ap)
 {
     return ctx->write_record(ctx, error, ap);
+}
+
+int main(int ac, char **av)
+{
+    printf("coucou !\n");
 }

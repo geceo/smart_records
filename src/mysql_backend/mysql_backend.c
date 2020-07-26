@@ -79,7 +79,7 @@ int mysql_backend_write_record(void *ctx, char **error, ...)
 {
     mysql_backend_ctx_t *c;
     char *record = NULL;
-    int ret=0, size=0;
+    int size=0;
     va_list ap;
 
     if (!ctx) {
