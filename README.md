@@ -1,3 +1,5 @@
+# This repo holds WIP, not usable "as-is" for the moment !!
+
 # smart_records
 A small library to write "records" with MySQL, CSV, UDP, Multicast and SQLite backends
 
