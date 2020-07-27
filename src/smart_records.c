@@ -10,11 +10,11 @@
 #endif
 
 #ifdef _HAS_SQLITE
-#include "sqlite_backend.h"
+//#include "sqlite_backend.h"
 #endif
 
 #ifdef _HAS_UDP
-#include "udp_backend.h"
+#include "udp_backend/udp_backend.h"
 #endif
 
 #ifdef _HAS_CSV
@@ -49,19 +49,18 @@ int smart_records_open_base(smart_records_ctx_t *ctx, char **error, const char *
 #endif
     }
 
-    else if(!strncmp("sqlite://", uri, len_uri < 9 ? len_uri : 9)) {
-#ifdef _HAS_SQLITE
-#else
-        set_error_and_fails("built without support for sqlite:// URIs");
-    }
-#endif
-
     else if(!strncmp("udp://", uri, len_uri < 8 ? len_uri : 8)) {
 #ifdef _HAS_UDP
+        ctx->backend_ctx = NULL;
+        ctx->write_record = udp_backend_write_record;
+        ctx->set_format = udp_backend_set_format;
+        ctx->close_records_base = udp_backend_close_records_base;
+        if (!(ctx->backend_ctx = udp_backend_init(error)))
+            goto failed;
 #else
         set_error_and_fails("built without support for udp:// URIs");
-    }
 #endif
+    }
 
     else if(!strncmp("csv://", uri, len_uri < 8 ? len_uri : 8)) {
 #ifdef _HAS_CSV
@@ -75,6 +74,10 @@ int smart_records_open_base(smart_records_ctx_t *ctx, char **error, const char *
         set_error_and_fails("built without suppor fort csv:// URIs");
 #endif
     }
+    else if(!strncmp("sqlite://", uri, len_uri < 9 ? len_uri : 9)) {
+        set_error_and_fails("support for sqlite:// URIs not yet implemented");
+    }
+
     else {
         set_error_and_fails("Unknown scheme or bad URI.");
         goto failed;
@@ -102,4 +105,5 @@ int smart_records_write(smart_records_ctx_t *ctx, char **error, va_list ap)
 int main(int ac, char **av)
 {
     printf("coucou !\n");
+    return 0;
 }
